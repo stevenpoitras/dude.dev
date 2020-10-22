@@ -1,10 +1,10 @@
-title: dash
-author: GitHub User
-email: miguel-gonzalez@gmx.de
+title: dude.dev
+author: Steven Poitras
+email: steven.poitras@gmail.com
 description: > # this means to ignore newlines until "show_exerpts:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  Welcome to my new site!  After being focused on writing a site for
+  my previous company Nutanix - NutanixBible.com figured it was time
+  to get my normal blog back into action.  Enjoy!
 show_excerpts: false # set to true to show excerpts on the homepage
 
 paginate: 1
@@ -25,13 +25,13 @@ dash:
   # generate social links in footer
   # supported colors: green, red, orange, blue, cyan, pink, teal, yellow, indigo, purple
   social_links:
-    - url: https://twitter.com/bitbrain_
+    - url: https://twitter.com/stevenpoitras
       icon: twitter-square
       color: cyan
-    - url: https://bitbrain.itch.io
-      icon: itch-io
-      color: red
-    - url: https://github.com/bitbrain
+#    - url: https://bitbrain.itch.io
+#      icon: itch-io
+#      color: red
+    - url: https://github.com/stevenpoitras
       icon: github-square
       color: purple
 
