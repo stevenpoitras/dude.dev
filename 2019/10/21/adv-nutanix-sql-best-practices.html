@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Advanced Nutanix – SQL Best Practices | dude.dev</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Advanced Nutanix – SQL Best Practices" />
+<meta name="author" content="Steven Poitras" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Best Practices Checklist" />
+<meta property="og:description" content="Best Practices Checklist" />
+<meta property="og:site_name" content="dude.dev" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-10-21T00:00:00+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Advanced Nutanix – SQL Best Practices" />
+<script type="application/ld+json">
+{"description":"Best Practices Checklist","url":"/2019/10/21/adv-nutanix-sql-best-practices.html","@type":"BlogPosting","headline":"Advanced Nutanix – SQL Best Practices","dateModified":"2019-10-21T00:00:00+00:00","datePublished":"2019-10-21T00:00:00+00:00","mainEntityOfPage":{"@type":"WebPage","@id":"/2019/10/21/adv-nutanix-sql-best-practices.html"},"author":{"@type":"Person","name":"Steven Poitras"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="icon" type="image/png" href="/assets/favicon.png" /><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="dude.dev" /></head>
+<body><div class="site-header">
+  <div class="wrapper">
+    <a class="site-title" rel="author" href="/">dude.dev<b class="command_prompt"></b><b class="blinking_cursor">_</b></a>
+    <span class="social_links">
+        <a class="color-cyan-hover" href="https://twitter.com/stevenpoitras"><i class="fab fa-twitter-square"></i></a><a class="color-purple-hover" href="https://github.com/stevenpoitras"><i class="fab fa-github-square"></i></a>
+    </span>
+  </div>
+</div>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        
+  <div class="author-box">
+    
+    
+        <img src="
+            https://gravatar.com/avatar/cec700145b5f36207202b2a9c5514831?s=256
+        " class="author-avatar" alt="Avatar" />
+    
+Welcome to my new site!  After being focused on writing a site for my previous company Nutanix - NutanixBible.com figured it was time to get my normal blog back into action.  Enjoy!
+
+</div>
+
+
+<div class="post">
+  <h1 class="post-title">Advanced Nutanix – SQL Best Practices</h1>
+  
+  <div class="post-tags">
+      
+      <a class="tag" href="/tag/mssql/">mssql</a>
+      
+      <a class="tag" href="/tag/nutanix/">nutanix</a>
+      
+  </div>
+  
+  <div class="post-date">Published on 21 Oct 2019</div>
+  
+  <h1 id="best-practices-checklist">Best Practices Checklist</h1>
+
+<h2 id="general">General</h2>
+<ul>
+  <li>Perform a current state analysis to identify workloads and sizing</li>
+  <li>Spend time up front to architect a solution that meets both current and future needs</li>
+  <li>Design to deliver consistent performance, reliability, and scale</li>
+  <li>Don’t undersize, don’t oversize, right size</li>
+  <li>Start with a PoC, test, optimize, iterate, scale</li>
+</ul>
+
+<h2 id="core-components">Core Components</h2>
+
+<h3 id="performance-and-scalability">Performance and Scalability</h3>
+
+<ul>
+  <li>Utilize multiple drives for TempDB Log/Data and Database Log/Data
+    <ul>
+      <li>Start with a minimum of 2 for small environments or 4 for larger environments</li>
+      <li>Look for PAGEIOLATCH_XX contention and scale number of drives as necessary</li>
+    </ul>
+  </li>
+  <li>Utilize a 64KB NTFS allocation unit size for MSSQL drives</li>
+  <li>Enabled locked pages in memory for MSSQL Server service account (NOTE: if this setting is used the VM’s memory must be locked, only applies with memory &gt; 8GB)</li>
+  <li>TempDB Data Files
+    <ul>
+      <li>Set TempDB size between 1 and 10% of instance database sizes</li>
+      <li>If number of cores &lt; 8
+        <ul>
+          <li>
+            <h1 id="of-cores---of-data-files">of cores = # of data files</h1>
+          </li>
+        </ul>
+      </li>
+      <li>If number of cores &gt; 8
+        <ul>
+          <li>Use 8 data files to begin with</li>
+          <li>Look for contention for in-memory allocation (PAGELATCH_XX) and scale 4 files at a time until contention is eliminated</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Database Data files
+    <ul>
+      <li>Size appropriately and enable AUTOGROW respective to database growth</li>
+      <li>Do not AUTOSHRINK data and log files</li>
+      <li>At a maximum keep below 80% of disk capacity utilization</li>
+      <li>Use multiple data file and drives
+        <ul>
+          <li>Look for contention  for in-memory allocation (PAGELATCH_XX), if contention increase number of files</li>
+          <li>Look for I/O subsystem contention (PAGEIOLATCH_XX), if contention, spread the data files across multiple drives</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Trace flags
+    <ul>
+      <li>Implement trace flag 1118 at startup to remove single page allocations</li>
+      <li>Implement trace flag 834 to enable large pages (for tier-1 performance)</li>
+    </ul>
+  </li>
+  <li>Utilize the MSSQL Server Best Practices Analyzer (BPA) to identify potential issues</li>
+  <li>Utilize fast file initialization</li>
+  <li>Scale number of MSSQL VMs vs. number of MSSQL instances per VM</li>
+  <li>More memory = higher performance, if seeing memory pressures, increase VM memory</li>
+  <li>Utilize a dedicated disk for Microsoft Page File</li>
+</ul>
+
+<h3 id="availability">Availability</h3>
+<ul>
+  <li>Standardize, monitor and maintain</li>
+  <li>Leverage a MSSQL application monitoring solution (eg. System Center, etc.)</li>
+  <li>Create standardized MSSQL VM Templates</li>
+  <li>Utilize consistent disk quantities and layout schemes for MSSQL VMs</li>
+  <li>Join the MSSQL Server to the domain and use Active Directory for authentication</li>
+  <li>Leverage Contained Database Authentication (MSSQL 2012)</li>
+  <li>Use named instances for MSSQL database instances, even when only planning a single instance per VM</li>
+  <li>For named instances,  ensure application compatibility with dynamic ports, otherwise set instance to use a fixed port</li>
+</ul>
+
+</div>
+
+
+<div class="comments">
+<div id="disqus_thread"></div>
+<script>
+ var disqus_config = function () {
+     this.page.url = '/2019/10/21/adv-nutanix-sql-best-practices.html';
+     this.page.identifier = '/2019/10/21/adv-nutanix-sql-best-practices';
+     this.page.title = 'Advanced Nutanix – SQL Best Practices';
+ };
+
+ (function() {  // REQUIRED CONFIGURATION VARIABLE: EDIT THE SHORTNAME BELOW
+     var d = document, s = d.createElement('script');
+
+     s.src = '//bitbrain-github-io.disqus.com/embed.js';
+
+     s.setAttribute('data-timestamp', +new Date());
+     (d.head || d.body).appendChild(s);
+ })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+</div>
+
+
+
+
+<div class="related">
+  <h2>related posts</h2>
+  <ul class="related-posts">
+    
+      <li>
+        <h3>
+          <a href="/2020/10/22/test-post.html">
+            This is a test post
+          </a>
+        </h3>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+
+  
+  <h2>all tags</h2>
+  <div class="tag-cloud"><a href="/tag/foobar/" class="set-5">foobar</a> <a href="/tag/mssql/" class="set-5">mssql</a> <a href="/tag/nutanix/" class="set-5">nutanix</a></div>
+  
+
+
+
+
+<script>
+  let i = 0;
+  const text = '';
+  const speed = parseInt('50');
+  
+  function typeWriter() {
+    if (i < text.length) {
+      document.getElementById('animated-post-description').innerHTML += text.charAt(i);
+      i++;
+      setTimeout(typeWriter, speed);
+    }
+  }
+
+  document.getElementById('animated-post-description').style.display = 'initial';
+  typeWriter();
+</script>
+
+      </div>
+    </main><footer class="site-footer">
+  <div class="wrapper">
+    <div class="credits"><a href="https://github.com/bitbrain/jekyll-dash">dash</a> theme for Jekyll by <a href="https://github.com/bitbrain">bitbrain</a> made with <i class="fas fa-heart"></i><div class="toggleWrapper">
+    <input type="checkbox" class="dn" id="theme-toggle" onclick="modeSwitcher()" checked />
+    <label for="theme-toggle" class="toggle">
+    <span class="toggle__handler">
+      <span class="crater crater--1"></span>
+      <span class="crater crater--2"></span>
+      <span class="crater crater--3"></span>
+    </span>
+        <span class="star star--1"></span>
+        <span class="star star--2"></span>
+        <span class="star star--3"></span>
+        <span class="star star--4"></span>
+        <span class="star star--5"></span>
+        <span class="star star--6"></span>
+    </label>
+</div>
+<script type="text/javascript">
+const theme = localStorage.getItem('theme');
+
+if (theme === "light") {
+    document.documentElement.setAttribute('data-theme', 'light');
+} else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+}
+const userPrefers = getComputedStyle(document.documentElement).getPropertyValue('content');
+
+function activateDarkTheme() {
+    document.getElementById('theme-toggle').checked = true;
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.classList.add('theme--dark');
+    document.documentElement.classList.remove('theme--light');
+	document.getElementById("theme-toggle").className = 'light';
+	window.localStorage.setItem('theme', 'dark');
+}
+
+function activateLightTheme() {
+    document.getElementById('theme-toggle').checked = false;
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.documentElement.classList.add('theme--light');
+    document.documentElement.classList.remove('theme--dark');
+	document.getElementById("theme-toggle").className = 'dark';
+	window.localStorage.setItem('theme', 'light');
+}
+
+if (theme === "dark") {
+    activateDarkTheme();
+} else if (theme === "light") {
+    activateLightTheme();
+} else if  (userPrefers === "light") {
+    activateDarkTheme();
+} else {
+    activateDarkTheme();
+}
+
+function modeSwitcher() {
+	let currentMode = document.documentElement.getAttribute('data-theme');
+	if (currentMode === "dark") {
+	    activateLightTheme();
+	} else {
+	    activateDarkTheme();
+	}
+}
+</script></div>
+  </div>
+</footer>
+
+
+<script>
+      window.FontAwesomeConfig = {
+        searchPseudoElements: true
+      }
+    </script>
+  </body>
+
+</html>
